@@ -207,25 +207,15 @@ Send only the fields you want to change (partial update):
     "subTotal": 8500,
     "taxTotal": 0,
     "grandTotal": 8500,
-    "items": [...],
-    "virtualAccount": {          // ← This is the bank account where the patient pays
-      "accounts": [
-        {
-          "bankName": "Wema Bank",
-          "accountNumber": "9876543210",
-          "accountName": "MediTrust - John Doe"
-        },
-        {
-          "bankName": "Sterling Bank",
-          "accountNumber": "1234567890",
-          "accountName": "MediTrust - John Doe"
-        }
-      ],
-      "expiresAt": "2026-07-19T14:30:00.000Z"
-    }
+    "items": [...]
+    // NOTE: virtualAccount is NOT returned here. It is generated asynchronously and sent via WebSocket!
   }
 }
 ```
+
+> [!WARNING]
+> **Virtual Account Generation is Asynchronous!**
+> Because communicating with Monnify takes a few seconds, the `POST /billing/invoices` endpoint returns immediately *without* the virtual account. Your frontend must listen to the `virtual_account.created` WebSocket event (in the `invoice:<id>` or `department:reception` room) to receive the generated bank account details and display them to the patient.
 
 > [!IMPORTANT]
 > The `virtualAccount.accounts` array may contain **multiple banks**. Display all of them as selectable options (like how fintech apps show "Pay with GTB / Wema / Sterling"). The patient can transfer from any.
@@ -387,6 +377,7 @@ socket.on('connect', () => {
 | Event Name | Room Broadcast To | Payload | What to do in UI |
 |---|---|---|---|
 | `payment.completed` | `department:reception`, `department:pharmacy`, `invoice:<id>` | `{ invoiceId, amountPaid, paymentReference, patientId }` | Flash "Payment Received! 🎉" banner, update invoice status to PAID |
+| `virtual_account.created` | `department:reception`, `invoice:<id>` | `{ invoiceId, virtualAccount: { accounts: [...] } }` | Update the UI to display the bank accounts the patient needs to transfer money to |
 | `invoice.created` | `department:reception`, `hospital:global` | `{ invoiceId, invoiceNumber, patientId, grandTotal }` | Add new row to invoice table, show toast notification |
 | `dashboard.updated` | `hospital:global` | `{ action: 'payment_received' \| 'invoice_created' }` | Silently re-fetch dashboard stats |
 
