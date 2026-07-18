@@ -22,7 +22,12 @@ export class MonnifyClientService {
   }
 
   private get baseUrl(): string {
-    return this.configService.get<string>('monnify.baseUrl') || '';
+    let url = this.configService.get<string>('monnify.baseUrl') || '';
+    // Strip trailing slash if present
+    if (url.endsWith('/')) url = url.slice(0, -1);
+    // Strip accidental /api/v1 suffix if a user pasted it
+    if (url.endsWith('/api/v1')) url = url.slice(0, -7);
+    return url;
   }
 
   async authenticate(): Promise<string> {
