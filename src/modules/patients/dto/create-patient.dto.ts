@@ -1,5 +1,6 @@
-import { IsString, IsNotEmpty, IsOptional, IsEmail, IsDateString, IsEnum, Matches } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEmail, IsDate, IsEnum, Matches } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class CreatePatientDto {
   @ApiProperty({ example: 'John' })
@@ -25,7 +26,8 @@ export class CreatePatientDto {
   email?: string;
 
   @ApiPropertyOptional({ example: '1990-01-15' })
-  @IsDateString()
+  @Type(() => Date)
+  @IsDate()
   @IsOptional()
   dob?: Date;
 

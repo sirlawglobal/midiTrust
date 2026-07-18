@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsArray, ValidateNested, IsNumber, Min, IsDateString, IsOptional, IsMongoId } from 'class-validator';
+import { IsString, IsNotEmpty, IsArray, ValidateNested, IsNumber, Min, IsDate, IsOptional, IsMongoId } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -32,7 +32,8 @@ export class CreateInvoiceDto {
   items: CreateInvoiceItemDto[];
 
   @ApiPropertyOptional({ example: '2026-07-20T00:00:00.000Z' })
-  @IsDateString()
+  @Type(() => Date)
+  @IsDate()
   @IsOptional()
   dueDate?: Date;
 }
