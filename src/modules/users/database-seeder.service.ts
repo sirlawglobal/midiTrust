@@ -71,8 +71,8 @@ export class DatabaseSeederService implements OnApplicationBootstrap {
   }
 
   private async seedSuperAdmin() {
-    const adminEmail = process.env.SUPER_ADMIN_EMAIL || 'admin@meditrust-hospital.com';
-    const adminPassword = process.env.SUPER_ADMIN_PASSWORD || 'SuperSecretAdmin2026!';
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@meditrust-hospital.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'SuperSecretAdmin2026!';
 
     const existing = await this.userRepository.findByEmail(adminEmail);
     if (!existing) {

@@ -30,7 +30,7 @@ export class RolesGuard implements CanActivate {
     }
 
     // Super Admin has unrestricted access
-    if (user.role === RoleEnum.SUPER_ADMIN) {
+    if (user.role === RoleEnum.ADMIN) {
       return true;
     }
 

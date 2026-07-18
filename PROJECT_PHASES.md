@@ -79,7 +79,7 @@ C:\Users\HomePC\Desktop\MASTERS\Balposi\midTrust\
 ```typescript
 // roles schema
 {
-  name: String (Unique, Indexed), // e.g. "SUPER_ADMIN", "RECEPTIONIST", "PHARMACIST", "SECURITY"
+  name: String (Unique, Indexed), // e.g. "ADMIN", "STAFF"
   description: String,
   permissions: [String], // Array of PermissionEnum strings
   isSystemRole: Boolean (Default: false),
@@ -317,7 +317,7 @@ When domain state transitions occur, services emit synchronous or asynchronous l
 ### Phase 2: Security, Authentication, RBAC & User Management Module
 - **2.1** Create `AuditModule` with atomic log insertion service so all subsequent modules can log critical actions.
 - **2.2** Build Mongoose schemas for `roles`, `permissions`, `users`, and `sessions`.
-- **2.3** Seed initial system roles (`SUPER_ADMIN`, `RECEPTIONIST`, `BILLING_OFFICER`, `PHARMACIST`, `SECURITY_OFFICER`).
+- **2.3** Seed initial system roles (`ADMIN`, `STAFF`).
 - **2.4** Build `AuthModule`:
   - `POST /api/v1/auth/login` (Returns access token + hashed refresh token session).
   - `POST /api/v1/auth/refresh` (Session rotation & validation).

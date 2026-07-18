@@ -1,6 +1,6 @@
 import { Model, Document } from 'mongoose';
 import type { QueryFilter, UpdateQuery, QueryOptions, ClientSession } from 'mongoose';
-import { IBaseRepository, FilterQuery } from '../../common/interfaces/base-repository.interface';
+import { IBaseRepository, FilterQuery, PaginationOptions, PaginatedResult } from '../../common/interfaces/base-repository.interface';
 
 export abstract class BaseRepository<T extends Document> implements IBaseRepository<T> {
   constructor(protected readonly model: Model<T>) {}
@@ -34,10 +34,43 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
     return this.model.find(filter as QueryFilter<T>, projection, options).exec();
   }
 
+  async findPaginated(
+    filter: FilterQuery<T>,
+    options: PaginationOptions,
+  ): Promise<PaginatedResult<T>> {
+    const { page, limit, sort, populate } = options;
+    const skip = (page - 1) * limit;
+
+    let query = this.model.find(filter as QueryFilter<T>);
+
+    if (sort) {
+      query = query.sort(sort as any);
+    }
+
+    if (populate) {
+      query = query.populate(populate as any);
+    }
+
+    const [data, total] = await Promise.all([
+      query.skip(skip).limit(limit).exec(),
+      this.model.countDocuments(filter as QueryFilter<T>).exec(),
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
   async updateById(
     id: string,
     update: UpdateQuery<T>,
-    options: QueryOptions & { session?: ClientSession } = { new: true },
+    options: QueryOptions & { session?: ClientSession } = { returnDocument: 'after' },
   ): Promise<T | null> {
     return this.model.findByIdAndUpdate(id, update, options).exec();
   }
@@ -45,7 +78,7 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
   async updateOne(
     filter: FilterQuery<T>,
     update: UpdateQuery<T>,
-    options: QueryOptions & { session?: ClientSession } = { new: true },
+    options: QueryOptions & { session?: ClientSession } = { returnDocument: 'after' },
   ): Promise<T | null> {
     return this.model.findOneAndUpdate(filter as QueryFilter<T>, update, options).exec();
   }
@@ -67,5 +100,9 @@ export abstract class BaseRepository<T extends Document> implements IBaseReposit
   async exists(filter: FilterQuery<T>): Promise<boolean> {
     const res = await this.model.exists(filter as QueryFilter<T>).exec();
     return res !== null;
+  }
+
+  async aggregate(pipeline: any[]): Promise<any[]> {
+    return this.model.aggregate(pipeline).exec();
   }
 }

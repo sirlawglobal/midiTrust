@@ -3,6 +3,7 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { Logger as PinoLogger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { GlobalHttpExceptionFilter } from './common/filters/global-http-exception.filter';
 import { MongoExceptionFilter } from './common/filters/mongo-exception.filter';
@@ -12,8 +13,10 @@ import { TimeoutInterceptor } from './common/interceptors/timeout.interceptor';
 import { SanitizeInputPipe } from './common/pipes/sanitize-input.pipe';
 
 async function bootstrap() {
+  const app = await NestFactory.create(AppModule, { rawBody: true, bufferLogs: true });
+  app.useLogger(app.get(PinoLogger));
+  
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
   const port = configService.get<number>('app.port') || 3000;

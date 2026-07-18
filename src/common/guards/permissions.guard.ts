@@ -29,7 +29,7 @@ export class PermissionsGuard implements CanActivate {
       });
     }
 
-    if (user.role === RoleEnum.SUPER_ADMIN) {
+    if (user.role === RoleEnum.ADMIN) {
       return true;
     }
 
