@@ -14,9 +14,9 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { IActiveUser } from '../../common/interfaces/active-user.interface';
 import { MongoIdValidationPipe } from '../../common/pipes/mongo-id-validation.pipe';
 
-@ApiTags('Users (Staff Management)')
+@ApiTags('User Management')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

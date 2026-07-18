@@ -1,5 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { BillingService } from './billing.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceItemsDto } from './dto/update-invoice-items.dto';
@@ -12,6 +14,7 @@ import type { IActiveUser } from '../../common/interfaces/active-user.interface'
 
 @ApiTags('Billing')
 @ApiBearerAuth()
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('billing/invoices')
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}
