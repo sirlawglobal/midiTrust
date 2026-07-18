@@ -68,9 +68,7 @@ import { VerificationModule } from './modules/verification/verification.module';
     ]),
     LoggerModule.forRoot({
       pinoHttp: {
-        transport: process.env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty', options: { colorize: true, singleLine: true } }
-          : undefined,
+        transport: { target: 'pino-pretty', options: { colorize: true, singleLine: true } },
         level: process.env.NODE_ENV !== 'production' ? 'debug' : 'info',
       },
     }),
