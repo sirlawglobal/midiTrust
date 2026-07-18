@@ -79,6 +79,13 @@ export class PaymentsService {
         `Successfully generated ${accounts.length} Virtual Account(s) for invoice ${invoice.invoiceNumber}. ` +
           `Primary: ${primaryAccount.accountNumber} (${primaryAccount.bankName})`,
       );
+
+      // Emit event so the frontend can receive the generated accounts in real-time
+      this.eventEmitter.emit('virtual_account.created', {
+        invoiceId: invoice._id,
+        invoiceNumber: invoice.invoiceNumber,
+        virtualAccount: { accounts },
+      });
     } catch (error) {
       this.logger.error(`Failed to generate virtual account for invoice ${invoice.invoiceNumber}`, error);
       // In production, we might want to schedule a retry or emit an alert
