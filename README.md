@@ -121,7 +121,7 @@ The login response includes the user's **permissions array**. Use this to show/h
 {
   "firstName": "John",
   "lastName": "Doe",
-  "dateOfBirth": "1990-01-15",
+  "dob": "1990-01-15",
   "gender": "MALE",           // "MALE" | "FEMALE" | "OTHER"
   "email": "john@example.com",
   "phone": "+2348012345678",
