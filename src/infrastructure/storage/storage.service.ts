@@ -27,7 +27,7 @@ export class StorageService {
   async uploadPdf(buffer: Buffer, filename: string): Promise<{ publicId: string; url: string }> {
     return new Promise((resolve, reject) => {
       const uniqueId = uuidv4();
-      const publicId = `receipts/${uniqueId}-${filename.replace('.pdf', '')}`;
+      const publicId = `receipts/${uniqueId}-${filename}`;
 
       const uploadStream = cloudinary.uploader.upload_stream(
         {
