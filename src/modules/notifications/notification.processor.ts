@@ -64,11 +64,28 @@ export class NotificationProcessor extends WorkerHost {
       <p>Thank you for choosing MediTrust Hospital.</p>
     `;
 
+    let attachmentContent: string | undefined;
+    if (receiptUrl) {
+      try {
+        const response = await fetch(receiptUrl);
+        if (response.ok) {
+          const buffer = await response.arrayBuffer();
+          attachmentContent = Buffer.from(buffer).toString('base64');
+          this.logger.log(`Successfully downloaded receipt PDF from Cloudinary for Brevo. Size: ${buffer.byteLength} bytes.`);
+        } else {
+          this.logger.warn(`Failed to download receipt from Cloudinary. Status: ${response.status}`);
+        }
+      } catch (err: any) {
+        this.logger.error(`Error downloading receipt from ${receiptUrl}`, err.message);
+      }
+    }
+
     return this.brevoClientService.sendEmail({
       to: notification.recipient,
       subject: `Payment Receipt - ${receiptNumber}`,
       htmlContent,
-      attachmentUrl: receiptUrl,
+      attachmentContent,
+      attachmentUrl: attachmentContent ? undefined : receiptUrl,
       attachmentName: `${receiptNumber}.pdf`,
     });
   }

@@ -6,6 +6,7 @@ export interface SendEmailDto {
   subject: string;
   htmlContent: string;
   attachmentUrl?: string;
+  attachmentContent?: string;
   attachmentName?: string;
 }
 
@@ -36,13 +37,17 @@ export class BrevoClientService {
       htmlContent: data.htmlContent,
     };
 
-    if (data.attachmentUrl && data.attachmentName) {
+    if (data.attachmentName && (data.attachmentUrl || data.attachmentContent)) {
       payload.attachment = [
         {
-          url: data.attachmentUrl,
           name: data.attachmentName,
         },
       ];
+      if (data.attachmentContent) {
+        payload.attachment[0].content = data.attachmentContent;
+      } else if (data.attachmentUrl) {
+        payload.attachment[0].url = data.attachmentUrl;
+      }
     }
 
     try {
