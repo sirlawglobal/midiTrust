@@ -53,39 +53,24 @@ export class NotificationProcessor extends WorkerHost {
   }
 
   private async processEmail(notification: any): Promise<any> {
-    const { receiptUrl, receiptNumber, patientName } = notification.contextData;
+    const { receiptUrl, receiptNumber, patientName, pdfBase64 } = notification.contextData;
 
     const htmlContent = `
       <h3>Dear ${patientName},</h3>
       <p>Your payment was successfully received.</p>
       <p>Receipt Number: <strong>${receiptNumber}</strong></p>
-      <p>You can find your official digital receipt attached.</p>
+      <p>Your official digital receipt is attached to this email.</p>
       <br/>
       <p>Thank you for choosing MediTrust Hospital.</p>
     `;
-
-    let attachmentContent: string | undefined;
-    if (receiptUrl) {
-      try {
-        const response = await fetch(receiptUrl);
-        if (response.ok) {
-          const buffer = await response.arrayBuffer();
-          attachmentContent = Buffer.from(buffer).toString('base64');
-          this.logger.log(`Successfully downloaded receipt PDF from Cloudinary for Brevo. Size: ${buffer.byteLength} bytes.`);
-        } else {
-          this.logger.warn(`Failed to download receipt from Cloudinary. Status: ${response.status}`);
-        }
-      } catch (err: any) {
-        this.logger.error(`Error downloading receipt from ${receiptUrl}`, err.message);
-      }
-    }
 
     return this.brevoClientService.sendEmail({
       to: notification.recipient,
       subject: `Payment Receipt - ${receiptNumber}`,
       htmlContent,
-      attachmentContent,
-      attachmentUrl: attachmentContent ? undefined : receiptUrl,
+      // Use raw base64 PDF bytes directly — bypasses all Cloudinary URL/ACL issues
+      attachmentContent: pdfBase64 || undefined,
+      attachmentUrl: pdfBase64 ? undefined : receiptUrl,
       attachmentName: `${receiptNumber}.pdf`,
     });
   }

@@ -19,7 +19,7 @@ export class NotificationsService {
   ) {}
 
   @OnEvent('receipt.generated')
-  async handleReceiptGenerated(receipt: Receipt) {
+  async handleReceiptGenerated(receipt: Receipt & { pdfBase64?: string }) {
     this.logger.log(`Queueing notifications for Receipt ${receipt.receiptNumber}`);
 
     try {
@@ -36,6 +36,7 @@ export class NotificationsService {
             patientName: patient.firstName,
             receiptNumber: receipt.receiptNumber,
             receiptUrl: receipt.pdfUrl,
+            pdfBase64: receipt.pdfBase64, // Pass raw PDF bytes to avoid Cloudinary download issues
           },
           receipt._id as Types.ObjectId,
           'Receipt'

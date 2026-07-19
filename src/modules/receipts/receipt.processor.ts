@@ -55,9 +55,19 @@ export class ReceiptProcessor extends WorkerHost {
         qrCodeDataUrl,
       });
 
-      // Upload to Storage
       const filename = `${receiptData.receiptNumber}.pdf`;
-      const uploadResult = await this.storageService.uploadPdf(pdfBuffer, filename);
+
+      // Upload to Cloudinary for archival (resource_type 'raw' so it uploads correctly)
+      let pdfUrl = '';
+      let pdfCloudinaryId = '';
+      try {
+        const uploadResult = await this.storageService.uploadPdf(pdfBuffer, filename);
+        pdfUrl = uploadResult.url;
+        pdfCloudinaryId = uploadResult.publicId;
+        this.logger.log(`Receipt PDF archived to Cloudinary: ${pdfUrl}`);
+      } catch (uploadErr: any) {
+        this.logger.warn(`Cloudinary upload failed (non-fatal): ${uploadErr.message}`);
+      }
 
       // Save Receipt
       const receipt = await this.receiptsRepository.create({
@@ -67,17 +77,21 @@ export class ReceiptProcessor extends WorkerHost {
         patientId: patient._id,
         qrCodeDataUrl,
         signedJwtToken,
-        pdfCloudinaryId: uploadResult.publicId, // Or R2 Key depending on storage service logic
-        pdfUrl: uploadResult.url,
+        pdfCloudinaryId,
+        pdfUrl,
         issuedAt: new Date(),
       });
 
-      this.logger.log(`Receipt ${receipt.receiptNumber} successfully generated and uploaded.`);
+      this.logger.log(`Receipt ${receipt.receiptNumber} successfully generated.`);
       
-      // Trigger notification dispatch
-      this.eventEmitter.emit('receipt.generated', receipt);
+      // Trigger notification dispatch — pass the raw PDF buffer as base64 to avoid
+      // Cloudinary URL access issues when Brevo tries to download the attachment.
+      this.eventEmitter.emit('receipt.generated', {
+        ...receipt.toObject ? receipt.toObject() : receipt,
+        pdfBase64: pdfBuffer.toString('base64'),
+      });
       
-      return { status: 'success', receiptUrl: uploadResult.url };
+      return { status: 'success', receiptUrl: pdfUrl };
     } catch (error) {
       this.logger.error(`Failed to generate receipt PDF for ${receiptData.receiptNumber}`, error);
       throw error;

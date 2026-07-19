@@ -31,7 +31,7 @@ export class StorageService {
 
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          resource_type: 'image', // Use 'image' for PDFs to bypass strict ACL restrictions on raw files
+          resource_type: 'raw', // 'raw' is correct for PDF archival on Cloudinary
           public_id: publicId,
           format: 'pdf',
         },
