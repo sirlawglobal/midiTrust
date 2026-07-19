@@ -37,10 +37,15 @@ export class PaymentsService {
       // We use invoiceNumber as accountReference to link it back easily
       const accountReference = `VA-${invoice.invoiceNumber}`;
 
+      // To prevent Monnify's "R42: You cannot reserve more than 1 account for a customer" error,
+      // we generate a unique email per invoice. This ensures Monnify creates a fresh Virtual Account 
+      // for every invoice, mapping 1-to-1 with your database architecture.
+      const uniqueCustomerEmail = `${invoice.invoiceNumber.toLowerCase()}@meditrust.com`;
+
       const monnifyResponse = await this.monnifyClient.reserveVirtualAccount({
         accountReference,
         accountName: `MediTrust - ${patient.firstName} ${patient.lastName}`,
-        customerEmail: patient.email || 'billing@meditrust.com',
+        customerEmail: uniqueCustomerEmail,
         customerName: `${patient.firstName} ${patient.lastName}`,
         customerBvn: (patient as any).bvn, // optional but recommended for compliance
       });
