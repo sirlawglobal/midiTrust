@@ -94,12 +94,13 @@ export class MonnifyClientService {
 
       const data: any = await response.json();
       if (!response.ok || !data.requestSuccessful) {
+        this.logger.error(`Monnify VA Creation Error Response: ${JSON.stringify(data)}`);
         throw new Error(data.responseMessage || 'Failed to reserve virtual account');
       }
 
       return data.responseBody;
-    } catch (error) {
-      this.logger.error('Failed to reserve virtual account', error);
+    } catch (error: any) {
+      this.logger.error(`Failed to reserve virtual account: ${error.message}`, error.stack);
       throw new InternalServerErrorException('Could not generate virtual account from payment gateway');
     }
   }
