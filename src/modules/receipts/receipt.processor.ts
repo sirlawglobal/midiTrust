@@ -32,7 +32,7 @@ export class ReceiptProcessor extends WorkerHost {
         description: item.description,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        totalPrice: item.totalPrice,
+        totalPrice: item.totalAmount || item.totalPrice || 0,
       }));
 
       // Fetch dynamic settings instead of hardcoding
