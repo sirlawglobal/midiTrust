@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InvoicesRepository } from '../billing/invoices.repository';
 import { PaymentsRepository } from '../payments/payments.repository';
 import { ReceiptsRepository } from '../receipts/receipts.repository';
+import { PatientsRepository } from '../patients/patients.repository';
 import { InvoiceStatus } from '../../common/enums/invoice-status.enum';
 import { startOfDay, endOfDay, subDays } from 'date-fns';
 
@@ -11,6 +12,7 @@ export class DashboardService {
     private readonly invoicesRepository: InvoicesRepository,
     private readonly paymentsRepository: PaymentsRepository,
     private readonly receiptsRepository: ReceiptsRepository,
+    private readonly patientsRepository: PatientsRepository,
   ) {}
 
   async getSummary() {
@@ -45,10 +47,24 @@ export class DashboardService {
       isVerified: true,
     });
 
+    // 4. Invoices paid today (mirrors the revenue query's match criteria)
+    const paidInvoicesToday = await this.paymentsRepository.count({
+      status: 'PAID',
+      paidOn: { $gte: todayStart, $lte: todayEnd },
+    });
+
+    // 5. Total registered patients (all time)
+    const totalPatients = await this.patientsRepository.count({});
+
     return {
       totalRevenueToday,
+      // Kept as an alias for `totalRevenueToday` because the frontend dashboard
+      // (AdminDashboard.jsx) reads `revenueToday`.
+      revenueToday: totalRevenueToday,
       pendingInvoices,
       verifiedReceipts,
+      paidInvoicesToday,
+      totalPatients,
       timestamp: new Date().toISOString(),
     };
   }

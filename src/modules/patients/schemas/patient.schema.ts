@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } })
 export class Patient extends Document {
   @Prop({ required: true, unique: true, index: true })
   hospitalId: string; // e.g. PAT-2026-000001
@@ -35,6 +35,14 @@ export class Patient extends Document {
 }
 
 export const PatientSchema = SchemaFactory.createForClass(Patient);
+
+// The API contract (see README) documents the patient's human-readable ID as
+// `patientNumber`, but it's stored on the `hospitalId` field. Expose it as a virtual
+// alias so every consumer (frontend patient pages, receipt PDF generation) that reads
+// `patientNumber` gets the real value instead of silently getting `undefined`.
+PatientSchema.virtual('patientNumber').get(function (this: Patient) {
+  return this.hospitalId;
+});
 
 // Add text index for searching
 PatientSchema.index({ firstName: 'text', lastName: 'text', phone: 'text', hospitalId: 'text' });

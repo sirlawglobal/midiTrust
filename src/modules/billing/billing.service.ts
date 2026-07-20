@@ -60,9 +60,13 @@ export class BillingService {
   }
 
   async findAllInvoices(paginationDto: PaginationDto) {
-    const { page = 1, limit = 10 } = paginationDto;
-    
-    return this.invoicesRepository.findPaginated({}, {
+    const { page = 1, limit = 10, patientId } = paginationDto;
+    const filter: Record<string, any> = {};
+    if (patientId) {
+      filter.patientId = patientId;
+    }
+
+    return this.invoicesRepository.findPaginated(filter, {
       page,
       limit,
       sort: { createdAt: -1 },

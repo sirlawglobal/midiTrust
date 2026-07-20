@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsInt, IsMongoId, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class PaginationDto {
   @ApiPropertyOptional({ default: 1, minimum: 1, description: 'Page number' })
@@ -27,4 +27,9 @@ export class PaginationDto {
   @IsOptional()
   @IsString()
   sort?: string = '-createdAt';
+
+  @ApiPropertyOptional({ description: 'Filter results to a specific patient (Mongo ID)' })
+  @IsOptional()
+  @IsMongoId()
+  patientId?: string;
 }

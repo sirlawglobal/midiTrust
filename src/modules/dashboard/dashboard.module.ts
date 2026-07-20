@@ -4,9 +4,10 @@ import { DashboardController } from './dashboard.controller';
 import { BillingModule } from '../billing/billing.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { ReceiptsModule } from '../receipts/receipts.module';
+import { PatientsModule } from '../patients/patients.module';
 
 @Module({
-  imports: [BillingModule, PaymentsModule, ReceiptsModule],
+  imports: [BillingModule, PaymentsModule, ReceiptsModule, PatientsModule],
   controllers: [DashboardController],
   providers: [DashboardService],
 })
