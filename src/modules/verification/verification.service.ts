@@ -38,6 +38,7 @@ export class VerificationService {
         message: 'The receipt is cryptographically valid and payment is confirmed.',
         receiptDetails: {
           receiptNumber: receipt.receiptNumber,
+          patientId: payload.patientId,
           amountPaid: payload.amountPaid,
           issuedAt: receipt.issuedAt,
           scanCount: receipt.verificationCount,
