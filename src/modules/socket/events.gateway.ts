@@ -15,8 +15,10 @@ import { JwtSocketGuard } from './guards/jwt-socket.guard';
 @WebSocketGateway({
   namespace: '/events',
   cors: {
-    origin: '*', // Set to actual CORS origin in production
+    origin: process.env.SOCKET_CORS_ORIGIN || '*',
+    credentials: true,
   },
+  transports: ['websocket', 'polling'], // Enable polling fallback for Vercel compatibility
 })
 @UseGuards(JwtSocketGuard) // Applies to all incoming events, but not the initial handshake
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
