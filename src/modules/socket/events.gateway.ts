@@ -32,6 +32,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // We'll enforce a "joinRoom" event to do the actual secure subscription.
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
+    // Every connected client gets the in-app notification bell/feed broadcasts,
+    // regardless of role — unlike department/global rooms, this carries no sensitive
+    // data (just alert titles/messages), so no extra RBAC is needed here.
+    client.join('notifications:all');
   }
 
   handleDisconnect(client: Socket) {
@@ -109,5 +113,11 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (payload.invoiceId) {
       this.server?.to(`invoice:${payload.invoiceId}`).emit('virtual_account.created', payload);
     }
+  }
+
+  @OnEvent('notification.created')
+  handleNotificationCreated(payload: any) {
+    // Broadcast to every connected client so the notification bell badge updates live.
+    this.server?.to('notifications:all').emit('notification.created', payload);
   }
 }

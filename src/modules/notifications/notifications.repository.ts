@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Notification } from './schemas/notification.schema';
+import { Notification, NotificationKind } from './schemas/notification.schema';
 import { BaseRepository } from '../../infrastructure/database/base.repository';
 
 @Injectable()
@@ -31,5 +31,16 @@ export class NotificationsRepository extends BaseRepository<Notification> {
       update.$inc = { retryCount: 1 };
     }
     return this.notificationModel.findByIdAndUpdate(id, update, { new: true }).exec();
+  }
+
+  async countUnreadInApp(): Promise<number> {
+    return this.notificationModel.countDocuments({ kind: NotificationKind.IN_APP, isRead: false }).exec();
+  }
+
+  async markAllInAppAsRead(): Promise<number> {
+    const result = await this.notificationModel
+      .updateMany({ kind: NotificationKind.IN_APP, isRead: false }, { isRead: true })
+      .exec();
+    return result.modifiedCount || 0;
   }
 }

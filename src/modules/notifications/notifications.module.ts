@@ -7,6 +7,8 @@ import { NotificationsService } from './notifications.service';
 import { NotificationProcessor } from './notification.processor';
 import { NotificationsController } from './notifications.controller';
 import { MailerModule } from '../../infrastructure/mailer/mailer.module';
+import { WhatsAppClientService } from '../../infrastructure/messaging/whatsapp-client.service';
+import { StorageService } from '../../infrastructure/storage/storage.service';
 import { PatientsModule } from '../patients/patients.module';
 
 @Module({
@@ -23,6 +25,8 @@ import { PatientsModule } from '../patients/patients.module';
     NotificationsRepository,
     NotificationsService,
     NotificationProcessor,
+    WhatsAppClientService,
+    StorageService,
   ],
   exports: [NotificationsService],
 })

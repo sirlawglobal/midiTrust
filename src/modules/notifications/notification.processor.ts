@@ -4,6 +4,8 @@ import { Job } from 'bullmq';
 import { NotificationsRepository } from './notifications.repository';
 import { NotificationChannel } from './schemas/notification.schema';
 import { BrevoClientService } from '../../infrastructure/mailer/brevo-client.service';
+import { WhatsAppClientService } from '../../infrastructure/messaging/whatsapp-client.service';
+import { StorageService } from '../../infrastructure/storage/storage.service';
 
 @Processor('notification-dispatch-queue')
 export class NotificationProcessor extends WorkerHost {
@@ -12,6 +14,8 @@ export class NotificationProcessor extends WorkerHost {
   constructor(
     private readonly notificationsRepository: NotificationsRepository,
     private readonly brevoClientService: BrevoClientService,
+    private readonly whatsAppClientService: WhatsAppClientService,
+    private readonly storageService: StorageService,
   ) {
     super();
   }
@@ -37,7 +41,7 @@ export class NotificationProcessor extends WorkerHost {
           providerResponse = await this.processMockSms(notification);
           break;
         case NotificationChannel.WHATSAPP:
-          providerResponse = await this.processMockWhatsApp(notification);
+          providerResponse = await this.processWhatsApp(notification);
           break;
         default:
           throw new Error(`Unsupported channel ${notification.channel}`);
@@ -88,15 +92,35 @@ export class NotificationProcessor extends WorkerHost {
     });
   }
 
-  private async processMockWhatsApp(notification: any): Promise<any> {
-    const { receiptUrl, receiptNumber } = notification.contextData;
-    
-    // MOCK API CALL
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        this.logger.log(`[MOCK WHATSAPP] Sent Document PDF to ${notification.recipient}. Document URL: ${receiptUrl}`);
-        resolve({ provider: 'mock-whatsapp', status: 'delivered', messageId: `wa-${Date.now()}` });
-      }, 500);
-    });
+  private async processWhatsApp(notification: any): Promise<any> {
+    const { receiptUrl, receiptNumber, patientName, pdfCloudinaryId } = notification.contextData;
+    const caption = `Hi ${patientName || 'there'}, here's your MediTrust payment receipt (${receiptNumber}). Thank you for choosing us!`;
+
+    // Prefer a signed Cloudinary download URL — Cloudinary blocks unauthenticated
+    // delivery of raw PDF files by default, so the plain `receiptUrl` may not be
+    // fetchable by Meta's servers.
+    const documentUrl = pdfCloudinaryId
+      ? this.storageService.getSignedPdfDownloadUrl(pdfCloudinaryId)
+      : receiptUrl;
+
+    if (documentUrl) {
+      try {
+        return await this.whatsAppClientService.sendDocumentMessage(
+          notification.recipient,
+          documentUrl,
+          `${receiptNumber}.pdf`,
+          caption,
+        );
+      } catch (error: any) {
+        this.logger.warn(`WhatsApp document delivery failed for ${notification.recipient}, falling back to text: ${error.message}`);
+      }
+    }
+
+    // Fallback: plain text message with a link, in case document delivery fails
+    // (unreachable/expired link) or no document is available at all.
+    return this.whatsAppClientService.sendTextMessage(
+      notification.recipient,
+      documentUrl ? `${caption} View/download: ${documentUrl}` : caption,
+    );
   }
 }
