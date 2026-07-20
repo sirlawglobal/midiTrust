@@ -75,6 +75,10 @@ export class ReceiptsService {
     return this.receiptsRepository.findByReceiptNumber(receiptNumber);
   }
 
+  async findById(id: string) {
+    return this.receiptsRepository.findById(id);
+  }
+
   async findAll() {
     return this.receiptsRepository.find({});
   }
