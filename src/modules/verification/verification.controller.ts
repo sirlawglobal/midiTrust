@@ -9,7 +9,7 @@ import { VerifyReceiptDto } from './dto/verify-receipt.dto';
 export class VerificationController {
   constructor(private readonly verificationService: VerificationService) {}
 
-  @Post('receipt')
+  @Post('verify')
   @ApiOperation({ summary: 'Verify a receipt using its cryptographic JWT token (from QR code)' })
   async verifyReceipt(@Body() body: VerifyReceiptDto) {
     return this.verificationService.verifyReceipt(body.token);

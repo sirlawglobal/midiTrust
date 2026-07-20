@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, NotFoundException, HttpException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -46,6 +46,12 @@ export class VerificationService {
       };
     } catch (error) {
       this.logger.warn(`Verification failed for token: ${error.message}`);
+      // Preserve specific, already-meaningful errors (e.g. "Receipt not found") instead
+      // of masking every failure behind the same generic message, which made real bugs
+      // (like a mismatched API route) indistinguishable from an actually tampered token.
+      if (error instanceof HttpException) {
+        throw error;
+      }
       throw new BadRequestException('Invalid or tampered receipt token');
     }
   }
