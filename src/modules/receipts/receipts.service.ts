@@ -89,4 +89,24 @@ export class ReceiptsService {
     this.eventEmitter.emit('receipt.generated', receipt);
     return { status: 'success', message: 'Receipt resend queued' };
   }
+
+  /**
+   * Fetches the raw PDF bytes for a receipt so the API can stream them back with the
+   * correct headers. We go through a signed Cloudinary download URL (not the stored
+   * `pdfUrl`) because Cloudinary blocks unauthenticated delivery of raw PDF files by
+   * default, which otherwise results in a blank/broken preview in the frontend.
+   */
+  async getReceiptPdfBuffer(receiptId: string): Promise<{ buffer: Buffer; filename: string }> {
+    const receipt = await this.receiptsRepository.findById(receiptId);
+    if (!receipt) throw new Error('Receipt not found');
+    if (!receipt.pdfCloudinaryId) throw new Error('Receipt has no archived PDF');
+
+    const signedUrl = this.storageService.getSignedPdfDownloadUrl(receipt.pdfCloudinaryId);
+    const response = await fetch(signedUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch receipt PDF from storage (status ${response.status})`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    return { buffer: Buffer.from(arrayBuffer), filename: `${receipt.receiptNumber}.pdf` };
+  }
 }

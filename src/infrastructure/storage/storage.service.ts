@@ -32,8 +32,10 @@ export class StorageService {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           resource_type: 'raw', // 'raw' is correct for PDF archival on Cloudinary
+          type: 'upload',       // Ensures public delivery (not 'private' or 'authenticated')
           public_id: publicId,
           format: 'pdf',
+          access_type: 'public', // Make publicly accessible for downloads
         },
         (error, result: UploadApiResponse | undefined) => {
           if (error || !result) {
@@ -50,6 +52,20 @@ export class StorageService {
       );
 
       streamifier.createReadStream(buffer).pipe(uploadStream);
+    });
+  }
+
+  /**
+   * Cloudinary blocks unauthenticated delivery of raw files (PDF/ZIP) via the public
+   * CDN URL by default as a security measure. Signed "download" links generated via
+   * the Admin API (api.cloudinary.com) are exempt from that restriction, so we use one
+   * here to reliably fetch PDF bytes server-side regardless of the account's delivery
+   * settings, instead of relying on the plain `secure_url` returned at upload time.
+   */
+  getSignedPdfDownloadUrl(publicId: string): string {
+    return cloudinary.utils.private_download_url(publicId, 'pdf', {
+      resource_type: 'raw',
+      type: 'upload',
     });
   }
 }

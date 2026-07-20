@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Post, UseGuards, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Param, Post, UseGuards, NotFoundException, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { ReceiptsService } from './receipts.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -30,6 +31,20 @@ export class ReceiptsController {
       throw new NotFoundException('Receipt not found');
     }
     return receipt;
+  }
+
+  @Get('id/:id/pdf')
+  @ApiOperation({ summary: 'Stream the archived receipt PDF (bypasses Cloudinary raw-file delivery restrictions)' })
+  @Permissions(PermissionEnum.RECEIPTS_READ)
+  async streamReceiptPdf(@Param('id') id: string, @Res() res: Response) {
+    try {
+      const { buffer, filename } = await this.receiptsService.getReceiptPdfBuffer(id);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+      res.send(buffer);
+    } catch (error: any) {
+      throw new NotFoundException(error.message || 'Receipt PDF not found');
+    }
   }
 
   @Get(':receiptNumber')
