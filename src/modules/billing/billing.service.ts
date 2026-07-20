@@ -76,7 +76,7 @@ export class BillingService {
       throw new NotFoundException(`Invoice with ID ${id} not found`);
     }
     // Populate after finding to keep base repo simple
-    await invoice.populate(['patientId', 'issuedBy']);
+    await invoice.populate(['patientId', 'issuedBy', 'virtualAccountId']);
     return invoice;
   }
 
@@ -114,7 +114,7 @@ export class BillingService {
     // Populate before returning
     const populatedInvoice = await this.invoicesRepository.findById(id);
     if (populatedInvoice) {
-        await populatedInvoice.populate(['patientId', 'issuedBy']);
+        await populatedInvoice.populate(['patientId', 'issuedBy', 'virtualAccountId']);
         return populatedInvoice;
     }
     return updated as Invoice;

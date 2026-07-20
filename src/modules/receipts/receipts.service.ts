@@ -75,6 +75,10 @@ export class ReceiptsService {
     return this.receiptsRepository.findByReceiptNumber(receiptNumber);
   }
 
+  async findAll() {
+    return this.receiptsRepository.find({});
+  }
+
   async resendReceipt(receiptId: string) {
     const receipt = await this.receiptsRepository.findById(receiptId);
     if (!receipt) throw new Error('Receipt not found');

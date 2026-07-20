@@ -55,6 +55,9 @@ export class Invoice extends Document {
 
   @Prop()
   dueDate?: Date;
+
+  @Prop({ type: Types.ObjectId, ref: 'VirtualAccount', index: true })
+  virtualAccountId?: Types.ObjectId;
 }
 
 export const InvoiceSchema = SchemaFactory.createForClass(Invoice);

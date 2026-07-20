@@ -101,7 +101,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`Broadcasting virtual_account.created for Invoice ${payload.invoiceNumber}`);
     
     // Notify reception so they can read the account details to the patient
-    this.server.to('department:rec eption').emit('virtual_account.created', payload);
+    this.server.to('department:reception').emit('virtual_account.created', payload);
     
     // Notify the specific patient's screen if they are scanning/viewing from a tablet
     if (payload.invoiceId) {

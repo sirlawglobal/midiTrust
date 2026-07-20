@@ -14,11 +14,18 @@ import { PermissionEnum } from '../../common/enums/permission.enum';
 export class ReceiptsController {
   constructor(private readonly receiptsService: ReceiptsService) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Get all receipts' })
+  @Permissions(PermissionEnum.RECEIPTS_READ)
+  async getAllReceipts() {
+    return this.receiptsService.findAll();
+  }
+
   @Get(':receiptNumber')
   @ApiOperation({ summary: 'Get a receipt by its receipt number' })
   @Permissions(PermissionEnum.RECEIPTS_READ)
   async getReceipt(@Param('receiptNumber') receiptNumber: string) {
-    const receipt = await this.receiptsService.findByReceiptNumber(receiptNumber);
+    const receipt = await this.receiptsService.findByReceiptNumber(receiptNumber.trim());
     if (!receipt) {
       throw new NotFoundException('Receipt not found');
     }
