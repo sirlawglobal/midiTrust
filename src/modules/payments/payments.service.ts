@@ -35,12 +35,14 @@ export class PaymentsService {
       }
 
       // We use invoiceNumber as accountReference to link it back easily
-      const accountReference = `VA-${invoice.invoiceNumber}`;
+      // A random suffix ensures we don't hit "same reference" errors if the VA generation is retried
+      const randomSuffix = crypto.randomBytes(4).toString('hex');
+      const accountReference = `VA-${invoice.invoiceNumber}-${randomSuffix}`;
 
       // To prevent Monnify's "R42: You cannot reserve more than 1 account for a customer" error,
       // we generate a unique email per invoice. This ensures Monnify creates a fresh Virtual Account 
       // for every invoice, mapping 1-to-1 with your database architecture.
-      const uniqueCustomerEmail = `${invoice.invoiceNumber.toLowerCase()}@meditrust.com`;
+      const uniqueCustomerEmail = `${invoice.invoiceNumber.toLowerCase()}-${randomSuffix}@meditrust.com`;
 
       const monnifyResponse = await this.monnifyClient.reserveVirtualAccount({
         accountReference,

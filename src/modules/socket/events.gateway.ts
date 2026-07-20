@@ -23,7 +23,7 @@ import { JwtSocketGuard } from './guards/jwt-socket.guard';
 @UseGuards(JwtSocketGuard) // Applies to all incoming events, but not the initial handshake
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
-  server: Server;
+  server: Server | undefined;
 
   private readonly logger = new Logger(EventsGateway.name);
 
@@ -78,24 +78,24 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`Broadcasting payment.completed for Invoice ${payload.invoiceNumber}`);
     
     // Notify pharmacy that patient is cleared
-    this.server.to('department:pharmacy').emit('payment.completed', payload);
+    this.server?.to('department:pharmacy').emit('payment.completed', payload);
     
     // Notify reception
-    this.server.to('department:reception').emit('payment.completed', payload);
+    this.server?.to('department:reception').emit('payment.completed', payload);
     
     // Notify the specific patient's screen
     if (payload.invoiceId) {
-      this.server.to(`invoice:${payload.invoiceId}`).emit('payment.completed', payload);
+      this.server?.to(`invoice:${payload.invoiceId}`).emit('payment.completed', payload);
     }
     
     // Notify global dashboard
-    this.server.to('hospital:global').emit('dashboard.updated', { action: 'payment_received' });
+    this.server?.to('hospital:global').emit('dashboard.updated', { action: 'payment_received' });
   }
 
   @OnEvent('invoice.created')
   handleInvoiceCreated(payload: any) {
-    this.server.to('department:reception').emit('invoice.created', payload);
-    this.server.to('hospital:global').emit('dashboard.updated', { action: 'invoice_created' });
+    this.server?.to('department:reception').emit('invoice.created', payload);
+    this.server?.to('hospital:global').emit('dashboard.updated', { action: 'invoice_created' });
   }
 
   @OnEvent('virtual_account.created')
@@ -103,11 +103,11 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`Broadcasting virtual_account.created for Invoice ${payload.invoiceNumber}`);
     
     // Notify reception so they can read the account details to the patient
-    this.server.to('department:reception').emit('virtual_account.created', payload);
+    this.server?.to('department:reception').emit('virtual_account.created', payload);
     
     // Notify the specific patient's screen if they are scanning/viewing from a tablet
     if (payload.invoiceId) {
-      this.server.to(`invoice:${payload.invoiceId}`).emit('virtual_account.created', payload);
+      this.server?.to(`invoice:${payload.invoiceId}`).emit('virtual_account.created', payload);
     }
   }
 }
